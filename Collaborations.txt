@@ -1,0 +1,5 @@
+Done by Charles Nykamp
+
+Consulted official JavaDocs for ArrayList, HashMap, String
+
+Tree printer copied from BST lab
