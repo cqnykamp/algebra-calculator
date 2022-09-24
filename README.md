@@ -1,7 +1,7 @@
 # algebra-calculator
 A calculator for symbolically simplifying basic math expressions and validating equations
 
-Originally created for Data Structures class at Carleton College. Binary tree display created by Prof. Anya Vostinar.
+Originally created for Data Structures class at Carleton College in December 2021. Binary tree display created by Prof. Anya Vostinar.
 
 ## Examples
 
