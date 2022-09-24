@@ -6,7 +6,7 @@ Originally created for Data Structures class at Carleton College. Binary tree di
 ## Examples
 
 ![Example image with order of operations](images/example_order_of_operations.PNG)
-![Example image of equation validation](images/example_equation.png)
+![Example image of equation validation](images/example_equation.PNG)
 
 ## Getting started
 To run, type on command line:
