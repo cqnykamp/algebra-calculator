@@ -22,8 +22,10 @@ public class Variable extends Node {
         return value;
     }
 
-    public Node simplify() {
-        return new Variable((char)value);
+    public NodeWithHistory simplify() {
+        NodeWithHistory wrapper = new NodeWithHistory();
+        wrapper.node = new Variable((char)value);
+        return wrapper;
     }
 
     public String text() {

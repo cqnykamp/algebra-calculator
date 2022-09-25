@@ -16,8 +16,6 @@ public class Node {
 
     public int value;
 
-    public ArrayList<String> valueHistory = new ArrayList<>();
-
     //To be used if operations are invalid (such as dividing by zero)
     public String errorMessage = "";
     public boolean hasErrorMessage = false;
@@ -38,13 +36,8 @@ public class Node {
     /**
     * Creates a copy of itself which is a simplified version of itself and its children
      */
-    public Node simplify() {
+    public NodeWithHistory simplify() {
         return null;
-    }
-
-    /* Display this node as text */
-    public String text() {
-        return "";
     }
 
     /* Get the value of this node */
@@ -67,6 +60,10 @@ public class Node {
         return false;
     }
 
+    public String toStringIncludingChildren() {
+        return "";
+    }
+
 
     /**
      * These two functions are ones to help search for where a variable is on the tree
@@ -86,27 +83,6 @@ public class Node {
         }
     }
 
-
-    /**
-     * Function to print the values this Node has stored over times
-     */
-    public void printValueHistory(String leftText, String rightText) {
-        if(!valueHistory.isEmpty()) {
-            System.out.println(leftText +" " +valueHistory.get(0) +" "+ rightText);
-            leftText = leftText + " {{";
-            rightText = "}} " + rightText;
-
-            if(left != null) {
-                left.printValueHistory(leftText, rightText);
-            }
-            if(right != null) {
-                right.printValueHistory(leftText, rightText);
-            }
-
-        }
-
-
-    }
 
     /**
      * Convenience method to create a Node that has an error message. This is used 
@@ -223,4 +199,3 @@ public class Node {
     }
 
 }
-

@@ -1,7 +1,4 @@
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.HashMap;
 
 /**
  * This class takes in a math expression and converts into a tree of Nodes.
@@ -60,8 +57,7 @@ public class Parser {
 
         ArrayList<Node> tokens = new ArrayList<>();
         String currentNum = "";
-        char previousChar = '\n'; //Newline char flags the start
-                
+                        
         for(char c : input.toCharArray()) {
             if(digitsList.indexOf(c) != -1) {
                 currentNum += c;
@@ -93,8 +89,6 @@ public class Parser {
             if(c == ')') {
                 tokens.add(new Parenthesis(1));
             }
-
-            previousChar = c;
         }
 
         if(currentNum != "") {

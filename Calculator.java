@@ -1,6 +1,5 @@
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -43,7 +42,6 @@ public class Calculator {
      */
     public static void main(String[] args) {
         HashMap<String, String> history = new HashMap<>();
-
 
         Parser parser = new Parser();
 
@@ -102,25 +100,25 @@ public class Calculator {
                     continue;
                 }
 
-                Node leftSimple = leftRoot.simplify();
-                Node rightSimple = rightRoot.simplify();
+                NodeWithHistory leftSimple = leftRoot.simplify();
+                NodeWithHistory rightSimple = rightRoot.simplify();
 
                 System.out.println("Left side:");
                 leftRoot.printTree();
                 System.out.println("Right side:");
                 rightRoot.printTree();
 
-                if(leftSimple.hasErrorMessage) {
-                    System.out.println(leftSimple.errorMessage);
+                if(leftSimple.node.hasErrorMessage) {
+                    System.out.println(leftSimple.node.errorMessage);
                     continue;
-                } else if(rightSimple.hasErrorMessage) {
-                    System.out.println(rightSimple.errorMessage);
+                } else if(rightSimple.node.hasErrorMessage) {
+                    System.out.println(rightSimple.node.errorMessage);
                     continue;
 
                 } else {
-                    String equation = leftSimple.text() + " = " + rightSimple.text();
+                    String equation = leftSimple.node.toStringIncludingChildren() + " = " + rightSimple.node.toStringIncludingChildren();
 
-                    if(leftSimple.text().equals(rightSimple.text())) {
+                    if(leftSimple.node.toStringIncludingChildren().equals(rightSimple.node.toStringIncludingChildren())) {
                         System.out.println(boxMessage(equation+"\nThis equation is valid."));
                         history.put(equation, "valid");
                     } else {
@@ -141,23 +139,30 @@ public class Calculator {
 
                 root.printTree();
 
-                Node simple = root.simplify();
+                NodeWithHistory simpleWithHistory = root.simplify();
+
+                Node simple = simpleWithHistory.node;
+                ArrayList<String> valuesHistory = simpleWithHistory.values;
 
                 if(simple.hasErrorMessage) {
                     System.out.println(simple.errorMessage);
                 } else {
-                    String result = "Answer: "+root.text() +" = "+simple.text();
-                    history.put(root.text(), simple.text());
+                    String result = "Answer: "+root.toStringIncludingChildren() +" = "+simple.toStringIncludingChildren();
+                    history.put(root.toStringIncludingChildren(), simple.toStringIncludingChildren());
                     System.out.println(boxMessage(result));
                 }
 
-                System.out.println("  " + root.text());
-                root.printValueHistory("= ", "");
-
-
+                System.out.println(valuesHistory.get(0));
+                for(int i = 1; i < valuesHistory.size(); i++) {
+                    String line = valuesHistory.get(i);
+                    System.out.println(" = " + line);
+                } 
+ 
             }
 
         }
+
+        scanner.close();
 
     }
 }

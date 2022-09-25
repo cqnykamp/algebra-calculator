@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 
 /**
 * This class represents a plain integer number on the expression tree. In practice, it is
@@ -22,16 +23,20 @@ public class Number extends Node {
      * it is a number, it knows it is a simple as possible, and so it simply returns a copy of 
      * itself.
      */ 
-    public Node simplify() {
-        return new Number(value);
-    }
-
-    public String text() {
-        return String.valueOf(value);
+    public NodeWithHistory simplify() {
+        NodeWithHistory result = new NodeWithHistory();
+        result.node = new Number(value);
+        result.values = new ArrayList<String>();
+        result.values.add(String.valueOf(this.value));
+        return result;
     }
 
     public String toString() {
         return "" + value;    
+    }
+
+    public String toStringIncludingChildren() {
+        return this.toString();
     }
 
 }

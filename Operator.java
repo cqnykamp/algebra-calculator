@@ -34,92 +34,119 @@ public class Operator extends Node {
      * much as possible. If children are Numbers, then this function will simply compute the
      * number answer. If children are other Operators, then recursively calls them to simplify()
     */
-    public Node simplify() {
+    public NodeWithHistory simplify() {
 
-        valueHistory.add(text());
+        NodeWithHistory result = new NodeWithHistory();
 
-        Node leftSimple =  left.simplify();
-        Node rightSimple = right.simplify();
+        // System.out.println("Simplifying " + this.value + " " + this.left + " " + this.right); 
 
-        if(leftSimple.hasErrorMessage) {
+        NodeWithHistory leftSimple =  left.simplify();
+        NodeWithHistory rightSimple = right.simplify();
+
+        if(leftSimple.node.hasErrorMessage) {
             return leftSimple;
-        } else if(rightSimple.hasErrorMessage) {
+        } else if(rightSimple.node.hasErrorMessage) {
             return rightSimple;
         }
 
-        if( !leftSimple.isOperator() && !leftSimple.isVariable()
-            && !rightSimple.isOperator() && !rightSimple.isVariable()) {
+        // System.out.println("Left history" + leftSimple.values);
+        // System.out.println("Right history" + rightSimple.values);
 
-                int leftVal = leftSimple.value();
-                int rightVal = rightSimple.value();
+
+        for (String leftVal : leftSimple.values) {
+            result.values.add("(" + leftVal + this.toString() + this.right.toStringIncludingChildren() + ")");
+        }
+        String lastLeftVal = leftSimple.values.get(leftSimple.values.size() - 1);
+
+        rightSimple.values.remove(0);
+        for (String rightVal : rightSimple.values) {
+            result.values.add("(" + lastLeftVal + this.toString() + rightVal + ")");
+        }
+
+        if( !leftSimple.node.isOperator() && !leftSimple.node.isVariable()
+            && !rightSimple.node.isOperator() && !rightSimple.node.isVariable()) {
+
+            int leftVal = leftSimple.node.value();
+            int rightVal = rightSimple.node.value();
 
             switch(value) {
                 case 0: {
-                    Number newNum = new Number(leftVal + rightVal);
-                    valueHistory.add(""+newNum.value);
-                    return newNum;
-                } case 1: {
-                    Number newNum = new Number(leftVal - rightVal);
-                    valueHistory.add(""+newNum.value);
-                    return newNum;
-                } case 2: {
-                    Number newNum = new Number(leftVal * rightVal);
-                    valueHistory.add(""+newNum.value);
-                    return newNum;
-                } case 3: {
+                    result.node = new Number(leftVal + rightVal);
+                    result.values.add(String.valueOf(result.node.value));
+                } break;
+                case 1: {
+                    result.node = new Number(leftVal - rightVal);
+                    result.values.add(String.valueOf(result.node.value));
+                } break;
+                case 2: {
+                    result.node = new Number(leftVal * rightVal);
+                    result.values.add(String.valueOf(result.node.value));
+                } break;
+                case 3: {
                     if(rightVal == 0) {
                         //Divide by zero
-                        return ErrorNode("Cannot divide "+leftSimple.value+" by 0");
+                        result.node = ErrorNode("Cannot divide "+leftSimple.node.value+" by 0");
                     }
 
                     if(leftVal % rightVal == 0) {
-                        Number newNum = new Number(leftVal / rightVal);
-                        valueHistory.add(""+newNum.value);
-                        return newNum;
+                        // System.out.println(leftVal + " fits in " + rightVal);
+                        result.node = new Number(leftVal / rightVal);
+                        result.values.add(String.valueOf(result.node.value));
                         
                     } else {
+                        // System.out.println(leftVal + " does not fit in " + rightVal);
+
                         //Simplify the fraction and leave it as a fraction
                         int[] frac = simplifyFraction(leftVal, rightVal);
 
-                        leftSimple = new Number(frac[0]);
-                        rightSimple = new Number(frac[1]);
+                        Node leftEvenSimpler = new Number(frac[0]);
+                        Node rightEvenSimpler = new Number(frac[1]);
 
-                        Operator newOp = new Operator(3, leftSimple, rightSimple);
-                        valueHistory.add(""+newOp.value);
-                        return newOp;
+                        // System.out.println("Simplified fraction is " + leftSimple.node + " / " + rightSimple.node);
+
+                        result.node = new Operator(3, leftEvenSimpler, rightEvenSimpler);
+                        String lastResultValue = result.values.get(result.values.size() - 1);
+                        String possibleNewValue = "(" + frac[0] + this.toString() + frac[1] + ")";
+                        if( !possibleNewValue.equals(lastResultValue)) {
+                            result.values.add(possibleNewValue);
+                        }
                     }
+                } break;
+                default: {
+                    throw new Error("Invalid operator type");
                 }
             }
 
-        } else if(!leftSimple.isOperator() && !rightSimple.isOperator()) {
+        } else if(!leftSimple.node.isOperator() && !rightSimple.node.isOperator()) {
             //One or more variable children
-            return new Operator(value, leftSimple, rightSimple);
+            result.node = new Operator(value, leftSimple.node, rightSimple.node);
+            throw new Error("Variables unimplemented!");
             
+        } else if(
+            leftSimple.node.isVariable() || (leftSimple.node.isOperator() && (leftSimple.node.left.isVariable() || leftSimple.node.right.isVariable()))
+            || rightSimple.node.isVariable() || (rightSimple.node.isOperator() && (rightSimple.node.left.isVariable() || rightSimple.node.right.isVariable()))
+        ) {
+            result.node = new Operator(value, leftSimple.node, rightSimple.node);
+            throw new Error("Variables unimplemented");
+
         } else {
-
-            if(leftSimple.isVariable() || (leftSimple.isOperator() && (leftSimple.left.isVariable() || leftSimple.right.isVariable()))
-
-            || rightSimple.isVariable() || (rightSimple.isOperator() && (rightSimple.left.isVariable() || rightSimple.right.isVariable()))
-             ) {
-                return new Operator(value, leftSimple, rightSimple);
-            }
 
             int[] fracLeft = new int[2];
             int[] fracRight = new int[2];
 
-            if(leftSimple.isOperator()) {
-                fracLeft[0] = leftSimple.left.value();
-                fracLeft[1] = leftSimple.right.value();
+            if(leftSimple.node.isOperator()) {
+                fracLeft[0] = leftSimple.node.left.value();
+                fracLeft[1] = leftSimple.node.right.value();
             } else {
-                fracLeft[0] = leftSimple.value(); //Assuming this is number!!
+                fracLeft[0] = leftSimple.node.value(); //Assuming this is number!!
                 fracLeft[1] = 1;
             }
 
-            if(rightSimple.isOperator()) {
-                fracRight[0] = rightSimple.left.value();
-                fracRight[1] = rightSimple.right.value();
+            if(rightSimple.node.isOperator()) {
+                fracRight[0] = rightSimple.node.left.value();
+                fracRight[1] = rightSimple.node.right.value();
             } else {
-                fracRight[0] = rightSimple.value(); //Assuming this is number!!
+                fracRight[0] = rightSimple.node.value(); //Assuming this is number!!
                 fracRight[1] = 1;
             }
 
@@ -133,116 +160,89 @@ public class Operator extends Node {
                 int top = (value==0) ? (topLeft + topRight) : (topLeft - topRight);
                 
                 Operator newOp = new Operator(3, new Number(top), new Number(lcm));
-                Node newerOp = newOp.simplify();
-                valueHistory.add(""+newerOp.value);
-                return newerOp;
+                result.values.add("(" + top + newOp.toString() + lcm + ")");
+                NodeWithHistory newerOp = newOp.simplify();
+
+                result.node = newerOp.node;
+                if(result.node.isOperator()) {
+                    String lastResultValue = result.values.get(result.values.size() - 1);
+                    String possibleNewValue = "(" + result.node.left.toString() + result.node.toString() + result.node.right.toString() + ")";
+                    if( !possibleNewValue.equals(lastResultValue)) {
+                        result.values.add(possibleNewValue);
+                    }
+
+                } else {
+                    result.values.add(result.node.toString());
+                }
 
 
             } else if(value == 2) { //multiplication
 
                 int top = fracLeft[0] * fracRight[0];   
                 int bottom = fracLeft[1] * fracRight[1];
+                result.values.add("(" + top + this.toString() + bottom + ")");
+
 
                 int[] frac = simplifyFraction(top, bottom);
 
-                return new Operator(3, new Number(frac[0]), new Number(frac[1]));
+                result.node = new Operator(3, new Number(frac[0]), new Number(frac[1]));
+
+                String lastResultValue = result.values.get(result.values.size() - 1);
+                String possibleNewValue = "(" + result.node.left.toString() + result.node.toString() + result.node.right.toString() + ")";
+                if( !possibleNewValue.equals(lastResultValue)) {
+                    result.values.add(possibleNewValue);
+                }
+
 
             } else if(value == 3) { //division
 
                 int top = fracLeft[0] * fracRight[1];
                 int bottom = fracLeft[1] * fracRight[0];
+                result.values.add("(" + top + this.toString() + bottom + ")");
+
+
+                // System.out.println("Top is " + top + " Bottom is " + bottom);
 
                 int[] frac = simplifyFraction(top, bottom);
 
-                return new Operator(3, new Number(frac[0]), new Number(frac[1]));
+                // System.out.println("After simplification fraction " + frac);
 
-            }
-
-            return new Operator(value, leftSimple, rightSimple);
-        }
-
-        return ErrorNode("A problem occurred.");
-    }
-
-
-
-    /**
-     * Function to print the values this Node has stored over time.
-     * @param leftText the text which was to the left of this operation in the expression
-     * @param rightText the text which was to the right of this operation in the expression
-     */
-    public void printValueHistory(String leftText, String rightText) {
-        if(valueHistory.size() > 1) {
-
-            leftText = leftText + "(";
-            rightText = ")" + rightText;
-
-            String addedLeftText = left.text() + this.toString();
-
-            if(left != null) {
-                left.printValueHistory(leftText, this.toString() + right.text()+rightText);
-                if( !left.valueHistory.isEmpty()) {
-                    addedLeftText = left.valueHistory.get(left.valueHistory.size()-1) + this.toString();
+                result.node = new Operator(3, new Number(frac[0]), new Number(frac[1]));
+                String lastResultValue = result.values.get(result.values.size() - 1);
+                String possibleNewValue = "(" + result.node.left.toString() + result.node.toString() + result.node.right.toString() + ")";
+                if( !possibleNewValue.equals(lastResultValue)) {
+                    result.values.add(possibleNewValue);
                 }
+
+            } else {
+                throw new Error("Invalid operator");
             }
-
-
-            if(right != null) {
-                right.printValueHistory(leftText + addedLeftText, rightText);
-            }
-
-            System.out.println(leftText +valueHistory.get(1) + rightText);
-
         }
 
-
-    }
-
-    /** Displaying nicely as text with its own children */
-    public String text() {
-        return textWithCustomChildren(left, right);
-    }
-
-    /* This is useful for displaying the steps of the equation */
-    private String textWithCustomChildren(Node leftChild, Node rightChild) {
-        boolean leftParen = false;
-        if( (value==2 || value==3) && 
-            leftChild.isOperator() &&
-            (leftChild.value()==0 || leftChild.value()==1) ) {
-            leftParen = true;
-        }
-        String leftText = (leftParen ? "(" : "") + leftChild.text() + (leftParen ? ")" : "");
-
-        boolean rightParen = false;
-        if(value==3 && right.isOperator()) {
-            rightParen = true;
-
-        } else if( value==2 && 
-            rightChild.isOperator() &&
-            (rightChild.value()==0 || rightChild.value()==1) ) {
-            rightParen = true;
-        }
-        String rightText = (rightParen ? "(" : "") + rightChild.text() + (rightParen ? ")" : "");
-
-        return leftText + "" +this.toString()+ "" + rightText;
+        // System.out.println("value history is " + result.values);
+        return result;
     }
 
 
     public String toString() {
-        // String tag = nonInteger ? "" : "f";
-        String tag = "";
-        if(value() == 0) { 
-            return "+" + tag;
+        String opStr = "";
+        if(value() == 0) {
+            opStr = "+";
         } else if(value() == 1){
-            return "-" + tag;
+            opStr = "-";
         } else if(value() == 2) {
-            return "*" + tag;
+            opStr = "*";
         } else if(value() == 3) {
-            return "/" + tag;
-        
+            opStr = "/";        
         } else {
-            return "??? "+ tag;
+            opStr = "???";
         }
+
+        return opStr;
+    }
+
+    public String toStringIncludingChildren() {
+        return this.left.toStringIncludingChildren() + this.toString() + this.right.toStringIncludingChildren();
     }
 
 
@@ -250,7 +250,7 @@ public class Operator extends Node {
     
     /* Generates list of prime factors for specified num */
     public ArrayList<Integer> factors(int num) {
-        ArrayList<Integer> factors = new ArrayList<>();
+        ArrayList<Integer> factors = new ArrayList<Integer>();
         factors.add(1); //gets removed at the end
 
         boolean isNegative = false;
