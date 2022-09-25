@@ -7,7 +7,7 @@ Originally created for Data Structures class at Carleton College in December 202
 
 ![Example image with order of operations](images/example_order_of_operations.PNG)
 ![Example image of equation validation](images/example_equation.PNG)
-![Example image of combined fractions](images/example_combining_fractions.PNG)
+![Example image of combined fractions](images/example_combining_fractions2.PNG)
 
 ## Getting started
 To run, type on command line:
